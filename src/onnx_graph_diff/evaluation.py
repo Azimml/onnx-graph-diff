@@ -1,3 +1,16 @@
+"""Score matcher output against a labelled fixture corpus.
+
+:func:`score_result` compares one :class:`~onnx_graph_diff.models.ComparisonResult`
+against a manifest's expected anchors, region nodes, rule id, and equivalence
+label, producing per-case flags (anchor / region / rule correctness and any
+false positive on a known-inequivalent pair). :func:`summarize` aggregates those
+per-case records into corpus-level accuracy metrics and a false-positive rate.
+
+This is the harness the test suite and ``scripts/evaluate_corpus.py`` use to
+guard the deterministic route against regressions; it never runs a model and
+depends only on the manifests emitted alongside the fixtures.
+"""
+
 from __future__ import annotations
 
 import json
