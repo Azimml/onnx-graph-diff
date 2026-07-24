@@ -1,3 +1,20 @@
+"""Serialize bounded windows of the two graphs into the JSON an LLM sees.
+
+:class:`GraphContextBuilder` turns the current mismatch frontier into a compact,
+parent-preserving description of both graphs: the frontier nodes, their required
+(already-matched) parents, a forward window of successors bounded by
+``max_hops``/``max_nodes_per_graph``, the declared opsets, the known value
+mapping, and the supported rule catalog. Four :data:`ContextStrategy` values
+trade off detail for token budget, from ``parents_only`` up to ``full_window``.
+
+For the assisted ``llm`` route it can also attach ``coarse_anchor_pairs`` --
+deterministically computed same-operation candidate anchors (including virtual
+``__graph_output__:i`` anchors for terminal rewrites), ranked by distance from
+the frontier -- so the model chooses among vetted options rather than inventing
+node IDs. A final size guard collapses each node to a minimal descriptor if the
+serialized payload would exceed ``max_chars``.
+"""
+
 from __future__ import annotations
 
 import json
