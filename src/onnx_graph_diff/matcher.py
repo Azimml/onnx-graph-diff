@@ -1,3 +1,24 @@
+"""Deterministic fingerprint matcher and the mechanics shared by all routes.
+
+:class:`FingerprintMatcher` walks both graphs in topological order and repeatedly:
+
+1. commits every node pair whose forward fingerprints are equal (an exact match),
+   extending the value mapping across the cut;
+2. when the frontier diverges, enumerates candidate rejoin anchors from the
+   structural fingerprints, closes the smallest region behind the earliest
+   viable anchor, and hands that region to the
+   :class:`~onnx_graph_diff.equivalence.StaticEquivalenceValidator`;
+3. records a :class:`~onnx_graph_diff.models.MatchEvent` (exact / region /
+   unresolved) and continues until both graphs are fully consumed or no anchor
+   closes.
+
+The readiness tracking, exact-match commitment, region closure, and candidate
+generation implemented here are reused by the LLM and agentic routes -- those
+only change *how* the rejoin anchor is chosen, not the surrounding bookkeeping
+or the independent equivalence check. This route needs no API key and is fully
+reproducible.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
