@@ -270,6 +270,16 @@ ruff format .          # format
 mypy                   # static type check (advisory)
 ```
 
+A `Makefile` wraps the common targets — `make install`, `make lint`, `make format`, `make test`, `make cov`, and `make check` (the full pre-PR gate). Run `make help` for the full list.
+
+For an end-to-end taste without wiring up your own models, run the bundled example, which generates a fixture pair and diffs it on the deterministic route:
+
+```bash
+python examples/run_diff.py
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution workflow and [CHANGELOG.md](CHANGELOG.md) for release notes.
+
 The test suite runs entirely offline — the LLM routes are exercised through fake clients, so no API key or network access is needed. Continuous integration (GitHub Actions) runs lint, format-check, mypy, and the test suite with coverage across Python 3.10, 3.11, and 3.12.
 
 ## Troubleshooting
