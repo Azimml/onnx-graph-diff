@@ -1,3 +1,22 @@
+"""Plain dataclasses shared across the matching, proof, and reporting layers.
+
+These types are the vocabulary the whole pipeline speaks in:
+
+* :class:`Region` / :class:`AnchorCandidate` -- a closed set of region nodes and
+  a proposed rejoin anchor pair produced by a matching route.
+* :class:`EquivalenceResult` -- the verdict returned by the equivalence checker.
+* :class:`MatchEvent` -- one step of the alignment (an exact pair, a validated
+  difference region, or an unresolved region), the unit the report renders.
+* :class:`LLMMatchProposal` / :class:`AgenticMatchProposal` -- structured LLM
+  outputs the assisted routes parse before re-validating them.
+* :class:`LLMCallStats` -- per-call token/latency accounting.
+* :class:`ComparisonResult` -- the top-level result, JSON-serializable via
+  :meth:`ComparisonResult.to_dict`.
+
+Everything here is a dataclass with no behaviour beyond serialization, so the
+layers stay decoupled and results round-trip cleanly to JSON.
+"""
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
