@@ -24,6 +24,7 @@ The result is a readable HTML / Markdown / JSON report that says, region by regi
 - [Sample report](#sample-report)
 - [Architecture overview](#architecture-overview)
 - [Development](#development)
+- [Troubleshooting](#troubleshooting)
 - [License](#license)
 
 ---
@@ -270,6 +271,22 @@ mypy                   # static type check (advisory)
 ```
 
 The test suite runs entirely offline — the LLM routes are exercised through fake clients, so no API key or network access is needed. Continuous integration (GitHub Actions) runs lint, format-check, mypy, and the test suite with coverage across Python 3.10, 3.11, and 3.12.
+
+## Troubleshooting
+
+**Everything comes back `unresolved` / nothing matches.** The tool aligns two graphs by their *structure*, so it assumes `LEFT` and `RIGHT` compute the same thing modulo local rewrites. Passing two unrelated models produces unmatched nodes, not an error. Double-check the argument order (baseline first, optimized second).
+
+**A rewrite I know is valid is reported as `structural` rather than `proven`.** `proven` is only claimed when a supported certificate in `equivalence.py` matches *and* all of its side conditions hold. If the rule exists but a condition fails (e.g. a `Gemm` with `beta != 1`, or a weight that does not byte-match the pre-fusion initializer) the region is `rejected`; if no certificate covers the pattern at all (e.g. a custom-domain fused op) it is `structural`. This is by design — the checker never proves what it cannot certify. See [the equivalence checker](#the-independent-equivalence-checker) for the built-in rules.
+
+**A `proven` rule is unexpectedly `rejected` with an "unavailable in the declared opset" message.** The schema guard refuses to prove a rewrite whose standard-domain operators are not defined in the model's declared opset import. Re-export the model with the correct `opset_import`, or run through `onnx.version_converter` first.
+
+**`RuntimeError: API key is required` on an LLM route.** Only `--method llm`, `--method llm-agent`, and `--explain` need a key. Set the environment variable for your provider (`DASHSCOPE_API_KEY`, `OPENAI_API_KEY`, or a custom one via `--api-key-env`) — see [LLM providers](#llm-providers). The default `--method fingerprint` route needs no key.
+
+**`No model configured` for `--provider openai-compatible`.** The generic backend has no default model; pass `--model` (and usually `--base-url`).
+
+**Shapes look wrong or missing in the report.** Shape inference is best-effort and silently skipped if it fails, so some edges may show no dtype/shape. Matching still works from structure; the shapes are informational.
+
+Not covered here? Open an issue using the [bug report template](.github/ISSUE_TEMPLATE/bug_report.md) with the two models, the exact command, and the printed JSON summary.
 
 ## License
 
