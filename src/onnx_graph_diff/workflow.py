@@ -1,3 +1,17 @@
+"""LangGraph state machine wiring load -> route -> match -> explain.
+
+:func:`build_workflow` compiles a small :class:`~langgraph.graph.StateGraph`
+over :class:`WorkflowState`: it loads both models into a
+:class:`~onnx_graph_diff.ir.GraphIR`, dispatches on ``method`` to the
+fingerprint, LLM, or agentic matcher, and -- when ``explain`` is set and an LLM
+client is available -- runs a post-match natural-language explanation pass.
+
+The matchers' own ``explain`` flags are forced off so explanation happens once,
+in a single dedicated node, rather than inside each route. The compiled graph is
+invoked with a dict of paths/method/explain and returns the populated state
+(including ``left_graph``, ``right_graph``, and ``result``).
+"""
+
 from __future__ import annotations
 
 from typing import Literal, TypedDict
