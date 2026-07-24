@@ -1,3 +1,16 @@
+"""Command-line entry point for ``onnx-graph-diff``.
+
+Parses the two model paths and the matching options, assembles the matcher and
+context configs, builds the LangGraph workflow, and runs load -> route -> match
+-> (optional) explain. It then renders the requested report format (with a JSON
+sidecar by default) and prints a compact summary -- conclusion, region count,
+and unmatched counts -- to stdout as JSON.
+
+:func:`main` returns a process exit code and is wired to the ``onnx-graph-diff``
+console script in ``pyproject.toml``. An :class:`~argparse.ArgumentParser`
+suitable for docs or testing is available via :func:`build_parser`.
+"""
+
 from __future__ import annotations
 
 import argparse
