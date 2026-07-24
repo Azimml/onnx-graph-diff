@@ -1,3 +1,19 @@
+"""Render a comparison result as HTML, Markdown, or JSON.
+
+:func:`build_report_data` normalizes a :class:`~onnx_graph_diff.models.ComparisonResult`
+into a single JSON-serializable structure -- model overviews (op-type histograms,
+opsets, inputs/outputs), the overall conclusion, the per-region evidence ledger,
+the exact-match ledger, and any LLM call statistics -- keyed by
+:data:`REPORT_SCHEMA_VERSION`. The renderers (``write_comparison_report`` and
+friends) then turn that structure into a standalone HTML page, a Markdown
+document, or raw JSON, optionally emitting the JSON as a sidecar next to the
+HTML/Markdown output.
+
+Keeping the data shape separate from the renderers means the JSON sidecar and
+the human-readable reports never drift apart, and downstream tooling can consume
+the sidecar directly.
+"""
+
 from __future__ import annotations
 
 import html
