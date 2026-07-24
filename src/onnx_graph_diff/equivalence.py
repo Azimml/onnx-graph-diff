@@ -1,3 +1,27 @@
+"""Independent, opset-aware equivalence checker for rematched regions.
+
+:class:`StaticEquivalenceValidator` is deliberately decoupled from whichever
+route (fingerprint, LLM, or agentic) proposed a region. Given a candidate region
+on each side, it re-derives the region from the graphs themselves and tries each
+registered :data:`RuleValidator` in turn. Every rule checks its own side
+conditions -- matching initializers, attribute constraints, arity, dtype/shape
+compatibility -- before it will certify a rewrite.
+
+A region ends up with one of four statuses (see
+:data:`onnx_graph_diff.models.ProofStatus`):
+
+* ``proven`` -- a supported algebraic identity holds under the declared opset.
+* ``structural`` -- the sides rejoin cleanly but no certificate applies (e.g. an
+  opaque custom-domain fused op); reported as rematched-not-proven.
+* ``rejected`` -- a known rule pattern matched but a condition is violated.
+* ``unresolved`` -- surfaced by the matcher, not here, when a region cannot close.
+
+A schema guard runs first and rejects any region whose standard-domain operators
+are unavailable in the declared opset, so a proof is never claimed outside the
+opset range in which it actually holds. The proposer's ``claimed_rule`` only
+filters which certificate is accepted; it can never upgrade a status.
+"""
+
 from __future__ import annotations
 
 import math
