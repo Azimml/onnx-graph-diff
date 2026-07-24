@@ -1,0 +1,19 @@
+# Normalize line endings so checkouts are consistent across platforms.
+* text=auto eol=lf
+
+# Explicitly treat source and config as text.
+*.py    text
+*.toml  text
+*.cfg   text
+*.ini   text
+*.md    text
+*.yml   text
+*.yaml  text
+*.json  text
+
+# ONNX model fixtures are binary protobuf; never apply text conversions.
+*.onnx  binary
+
+# Collapse generated/vendored noise in diffs and language stats.
+*.onnx      linguist-generated=true
+CHANGELOG.md linguist-documentation=true
