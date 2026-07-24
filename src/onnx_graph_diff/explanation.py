@@ -1,3 +1,18 @@
+"""Post-match natural-language explanation of a comparison result.
+
+:func:`build_explanation_summary` distils a finished
+:class:`~onnx_graph_diff.models.ComparisonResult` down to just its difference
+regions -- compact node descriptors, anchors, proof status, validated rule, and
+any per-region heuristic note -- so the model is asked to explain what the
+independent checker already decided rather than to re-derive it.
+:func:`explain_result` then calls an :class:`ExplanationClient`, attaches the
+prose to ``result.explanation``, and records the call's
+:class:`~onnx_graph_diff.models.LLMCallStats`.
+
+The client is a narrow :class:`~typing.Protocol`, so the routes and the tests
+can supply a real LLM client or a fake interchangeably.
+"""
+
 from __future__ import annotations
 
 from typing import Any, Protocol
