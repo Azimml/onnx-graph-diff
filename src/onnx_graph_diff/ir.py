@@ -264,6 +264,10 @@ class GraphIR:
         )
 
     def parents(self, node_id: str) -> tuple[str, ...]:
+        """Return the producer nodes feeding ``node_id``, in graph order.
+
+        Initializer and graph inputs have no producer and are excluded.
+        """
         parents = {
             producer
             for input_name in self.nodes[node_id].inputs
@@ -272,15 +276,21 @@ class GraphIR:
         return tuple(sorted(parents, key=self.node_index))
 
     def children(self, node_id: str) -> tuple[str, ...]:
+        """Return the consumer nodes of every output of ``node_id``, in graph order."""
         children: set[str] = set()
         for output_name in self.nodes[node_id].outputs:
             children.update(self.values[output_name].consumers)
         return tuple(sorted(children, key=self.node_index))
 
     def node_index(self, node_id: str) -> int:
+        """Return the original position of ``node_id`` in the graph's node list."""
         return self.nodes[node_id].index
 
     def initializer_signature(self, value_name: str) -> dict[str, Any] | None:
+        """Return dtype/shape/digest/scalar for a constant value, or ``None``.
+
+        ``None`` means the value is not an initializer (a dynamic edge or input).
+        """
         value = self.values[value_name]
         if value.initializer is None:
             return None
@@ -292,6 +302,13 @@ class GraphIR:
         }
 
     def local_signature(self, node_id: str, *, include_constants: bool = True) -> str:
+        """Hash a node in isolation for name-independent exact matching.
+
+        The signature folds in domain, op type, attributes, input arity, output
+        dtype/shape, and (when ``include_constants`` is set) the digests of any
+        constant inputs -- but never the value names -- so two structurally
+        identical nodes in different graphs hash to the same string.
+        """
         node = self.nodes[node_id]
         constant_inputs: list[Any] = []
         if include_constants:
@@ -333,6 +350,12 @@ class GraphIR:
         return result
 
     def descendants(self, starts: Iterable[str], *, max_hops: int, max_nodes: int) -> list[str]:
+        """Return a bounded forward BFS window from ``starts``, in graph order.
+
+        Traversal stops at ``max_hops`` depth or once ``max_nodes`` have been
+        collected, whichever comes first; this bounds the context handed to the
+        LLM routes.
+        """
         queue = [(node_id, 0) for node_id in starts]
         seen: set[str] = set()
         result: list[str] = []
@@ -347,6 +370,12 @@ class GraphIR:
         return sorted(result, key=self.node_index)
 
     def validate_opset(self, node_id: str) -> bool:
+        """Return whether ``node_id``'s operator is available in the declared opset.
+
+        For custom domains this only checks that the domain was imported; for the
+        standard domain it looks up the operator schema at the graph's declared
+        version and returns ``False`` if no schema exists there.
+        """
         node = self.nodes[node_id]
         if node.domain not in ("", "ai.onnx"):
             return node.domain in self.opsets
