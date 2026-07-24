@@ -1,3 +1,26 @@
+"""Normalized, hashable intermediate representation of an ONNX graph.
+
+:class:`GraphIR` loads a ``ModelProto`` into a flat, index-preserving view that
+the rest of the package can traverse cheaply: nodes keyed by a stable ``node_id``,
+values (edges) carrying their producer/consumers, dtype/shape, and any constant
+initializer, plus the declared opset imports. Everything is derived once at load
+time so matching, fingerprinting, and equivalence checking never have to reparse
+the protobuf.
+
+The IR also provides the deterministic primitives those layers build on:
+
+* :meth:`GraphIR.parents` / :meth:`GraphIR.children` -- topological neighbours,
+  always returned in graph (index) order.
+* :meth:`GraphIR.local_signature` -- an op/attribute/constant hash used for
+  exact node matching independent of value names.
+* :meth:`GraphIR.descendants` -- a bounded forward window for LLM context.
+* :meth:`GraphIR.validate_opset` -- checks that a standard-domain operator is
+  actually defined in the graph's declared opset.
+
+Shape inference is attempted on load and silently skipped if it fails, so the IR
+is best-effort about shapes but never raises on a model ONNX itself accepts.
+"""
+
 from __future__ import annotations
 
 import hashlib
