@@ -1,3 +1,23 @@
+"""Merkle-style structural fingerprints over an ONNX DAG.
+
+Each node gets a :class:`NodeFingerprint` with three hashes plus a distance:
+
+* ``local`` -- the node in isolation (op, attributes, constant inputs, output
+  types), independent of the names of its edges.
+* ``forward`` -- the local hash folded with the fingerprints of everything that
+  feeds the node, so two nodes share a forward hash only if their entire input
+  cones are structurally identical.
+* ``backward`` -- the mirror image: the local hash folded with the fingerprints
+  of every consumer, capturing the downstream role of the node.
+* ``output_distance`` -- shortest hop count to a graph output, used to bias
+  anchor selection toward the earliest clean rejoin.
+
+Inputs to commutative operators (see :data:`COMMUTATIVE_OPS`) are sorted before
+hashing so that ``a + b`` and ``b + a`` fingerprint identically. These hashes
+drive deterministic exact-matching and rejoin-anchor enumeration in
+:mod:`onnx_graph_diff.matcher`; nothing here executes the model.
+"""
+
 from __future__ import annotations
 
 import hashlib
